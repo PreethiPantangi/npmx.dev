@@ -2,7 +2,6 @@
 import type { RouteLocationRaw } from 'vue-router'
 import type { CommandPaletteContextCommandInput } from '~/types/command-palette'
 import { SCROLL_TO_TOP_THRESHOLD } from '~/composables/useScrollToTop'
-import { useClipboard } from '@vueuse/core'
 
 const props = defineProps<{
   pkg?: Pick<SlimPackument, 'name' | 'versions' | 'dist-tags'> | null
@@ -93,8 +92,10 @@ useCommandPaletteContextCommands(
   computed((): CommandPaletteContextCommandInput[] => {
     if (!packageName.value) return []
 
-    const commands: CommandPaletteContextCommandInput[] = [
-      {
+    const commands: CommandPaletteContextCommandInput[] = []
+
+    if (packageName.value) {
+      commands.push({
         id: 'package-copy-name',
         group: 'package',
         label: $t('package.copy_name'),
@@ -104,19 +105,22 @@ useCommandPaletteContextCommands(
           copyPkgName()
           announce($t('command_palette.announcements.copied_to_clipboard'))
         },
-      },
-      {
+      })
+    }
+
+    if (props.resolvedVersion) {
+      commands.push({
         id: 'package-copy-version',
         group: 'package',
         label: $t('package.versions.copy_version'),
-        keywords: [props.resolvedVersion],
+        keywords: [props.resolvedVersion ?? ''],
         iconClass: 'i-lucide:copy',
         action: () => {
           copyPkgVersion()
           announce($t('command_palette.announcements.copied_to_clipboard'))
         },
-      },
-    ]
+      })
+    }
 
     if (fundingUrl.value) {
       commands.push({
