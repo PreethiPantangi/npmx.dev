@@ -570,7 +570,8 @@
       },
       "page_title": "Version History",
       "current_tags": "Current Tags",
-      "no_match_filter": "No versions match {filter}"
+      "no_match_filter": "No versions match {filter}",
+      "copy_version": "Copy version number"
     },
     "timeline": {
       "load_more": "Load more",

@@ -2,6 +2,7 @@
 import type { RouteLocationRaw } from 'vue-router'
 import type { CommandPaletteContextCommandInput } from '~/types/command-palette'
 import { SCROLL_TO_TOP_THRESHOLD } from '~/composables/useScrollToTop'
+import { useClipboard } from '@vueuse/core'
 
 const props = defineProps<{
   pkg?: Pick<SlimPackument, 'name' | 'versions' | 'dist-tags'> | null
@@ -61,6 +62,7 @@ const { y: scrollY } = useScroll(window)
 const showScrollToTop = computed(() => scrollY.value > SCROLL_TO_TOP_THRESHOLD)
 
 const packageName = computed(() => props.pkg?.name ?? '')
+const resolvedVersionDisplay = computed(() => props.resolvedVersion ?? '')
 const fundingUrl = computed(() => {
   let funding = props.displayVersion?.funding
   if (Array.isArray(funding)) funding = funding[0]
@@ -72,6 +74,11 @@ const fundingUrl = computed(() => {
 
 const { copied: copiedPkgName, copy: copyPkgName } = useClipboard({
   source: packageName,
+  copiedDuring: 2000,
+})
+
+const { copied: copiedPkgVersion, copy: copyPkgVersion } = useClipboard({
+  source: resolvedVersionDisplay,
   copiedDuring: 2000,
 })
 
@@ -95,6 +102,17 @@ useCommandPaletteContextCommands(
         iconClass: 'i-lucide:copy',
         action: () => {
           copyPkgName()
+          announce($t('command_palette.announcements.copied_to_clipboard'))
+        },
+      },
+      {
+        id: 'package-copy-version',
+        group: 'package',
+        label: $t('package.versions.copy_version'),
+        keywords: [props.resolvedVersion],
+        iconClass: 'i-lucide:copy',
+        action: () => {
+          copyPkgVersion()
           announce($t('command_palette.announcements.copied_to_clipboard'))
         },
       },
@@ -287,16 +305,23 @@ useShortcuts({
               <span class="i-lucide:cable rtl-flip min-w-3 w-3 h-3 mx-1" aria-hidden="true" />
             </TooltipApp>
           </template>
-          <!-- Version selector -->
-          <VersionSelector
-            v-if="resolvedVersion && pkg?.versions && pkg?.['dist-tags']"
-            :package-name="packageName"
-            :current-version="resolvedVersion"
-            :versions="pkg.versions"
-            :dist-tags="pkg['dist-tags']"
-            :url-pattern="versionUrlPattern"
-            position-class="max-md:inset-is-0 md:inset-ie-0"
-          />
+          <CopyToClipboardButton
+            :copied="copiedPkgVersion"
+            :copy-text="$t('package.versions.copy_version')"
+            class="inline-flex items-center min-w-0"
+            @click="copyPkgVersion()"
+          >
+            <!-- Version selector -->
+            <VersionSelector
+              v-if="resolvedVersion && pkg?.versions && pkg?.['dist-tags']"
+              :package-name="packageName"
+              :current-version="resolvedVersion"
+              :versions="pkg.versions"
+              :dist-tags="pkg['dist-tags']"
+              :url-pattern="versionUrlPattern"
+              position-class="max-md:inset-is-0 md:inset-ie-0"
+            />
+          </CopyToClipboardButton>
         </div>
       </div>
       <!-- Docs + Code — inline on desktop, floating bottom bar on mobile -->
