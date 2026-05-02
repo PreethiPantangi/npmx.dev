@@ -523,6 +523,11 @@ watch(
     }
   },
 )
+
+// Expose isOpen state to parent components
+defineExpose({
+  isOpen,
+})
 </script>
 
 <template>

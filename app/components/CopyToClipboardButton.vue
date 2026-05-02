@@ -12,6 +12,7 @@ const props = defineProps<{
   ariaLabelCopy?: string
   ariaLabelCopied?: string
   buttonAttrs?: HTMLAttributes
+  hideCopyText?: boolean
 }>()
 
 const buttonCopyText = computed(() => props.copyText || $t('common.copy'))
@@ -32,6 +33,7 @@ function handleClick() {
   <div class="group relative" v-bind="$attrs">
     <slot />
     <button
+      v-if="!hideCopyText"
       type="button"
       @click="handleClick"
       class="absolute z-20 inset-is-0 top-full inline-flex items-center gap-1 px-2 py-1 rounded border text-xs font-mono whitespace-nowrap transition-all duration-150 opacity-0 -translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:translate-y-0 focus-visible:pointer-events-auto"

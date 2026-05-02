@@ -21,6 +21,21 @@ const packageHeaderHeight = usePackageHeaderHeight()
 const header = useTemplateRef('header')
 const isHeaderPinned = shallowRef(false)
 const { height: headerHeight } = useElementBounding(header)
+const versionSelectorRef = useTemplateRef('versionSelectorRef')
+const versionSelectorOpen = computed(() => versionSelectorRef.value?.isOpen ?? false)
+const shouldHideCopyText = ref(false)
+let hideTextTimeout: ReturnType<typeof setTimeout> | null = null
+
+watch(versionSelectorOpen, isOpen => {
+  if (isOpen) {
+    shouldHideCopyText.value = true
+    if (hideTextTimeout) clearTimeout(hideTextTimeout)
+  } else {
+    hideTextTimeout = setTimeout(() => {
+      shouldHideCopyText.value = false
+    }, 300)
+  }
+})
 
 function isStickyPinned(el: HTMLElement | null): boolean {
   if (!el) return false
@@ -311,13 +326,15 @@ useShortcuts({
           </template>
           <CopyToClipboardButton
             :copied="copiedPkgVersion"
+            v-if="resolvedVersion && pkg?.versions && pkg?.['dist-tags']"
             :copy-text="$t('package.versions.copy_version')"
+            :hide-copy-text="shouldHideCopyText"
             class="inline-flex items-center min-w-0"
             @click="copyPkgVersion()"
           >
             <!-- Version selector -->
             <VersionSelector
-              v-if="resolvedVersion && pkg?.versions && pkg?.['dist-tags']"
+              ref="versionSelectorRef"
               :package-name="packageName"
               :current-version="resolvedVersion"
               :versions="pkg.versions"
